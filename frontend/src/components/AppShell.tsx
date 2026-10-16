@@ -38,49 +38,53 @@ export default function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-full">
       {/* Topbar */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90">
-        <div className="flex h-14 items-center gap-3 px-4">
-          <button className="rounded-lg p-2 text-ink-soft hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden" onClick={() => setOpen(!open)}>
+        <div className="flex h-14 items-center gap-2 px-3 sm:gap-3 sm:px-4">
+          <button className="shrink-0 rounded-lg p-2 text-ink-soft hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden" onClick={() => setOpen(!open)} aria-label="القائمة">
             <Menu size={18} />
           </button>
-          <div className="flex items-center gap-2 font-bold">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-500 text-white">
+          <div className="flex shrink-0 items-center gap-2 font-bold">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-500 text-white">
               <ArrowUpDown size={17} />
             </span>
             <span className="text-[15px]">Elevora</span>
-            <span className="hidden text-xs font-medium text-ink-faint sm:inline">منصة عمليات المصاعد</span>
+            <span className="hidden truncate text-xs font-medium text-ink-faint lg:inline">منصة عمليات المصاعد</span>
           </div>
 
-          <div className="relative mr-auto hidden items-center md:flex">
-            <Search size={15} className="absolute right-2.5 text-ink-faint" />
+          {/* search grows to fill the middle; no auto-margin so layout holds at every width */}
+          <div className="relative hidden min-w-0 flex-1 items-center md:flex">
+            <Search size={15} className="pointer-events-none absolute right-2.5 text-ink-faint" />
             <input
               placeholder="بحث عن مصعد، عميل، أمر عمل…"
-              className="w-72 rounded-lg border border-slate-200 bg-slate-50 py-1.5 pr-8 pl-3 text-sm outline-none focus:border-brand-400 dark:border-slate-700 dark:bg-slate-800"
+              className="w-full max-w-xs rounded-lg border border-slate-200 bg-slate-50 py-1.5 pr-8 pl-3 text-sm outline-none focus:border-brand-400 dark:border-slate-700 dark:bg-slate-800"
             />
           </div>
 
-          <label className="hidden items-center gap-1.5 rounded-lg border border-slate-200 px-2 py-1 text-sm dark:border-slate-700 sm:flex">
-            <span className="text-ink-faint">الفرع</span>
-            <select className="bg-transparent text-sm font-medium outline-none">
-              {branches.map((b) => <option key={b}>{b}</option>)}
-            </select>
-          </label>
+          {/* trailing controls: pinned to the inline-end (left in RTL) regardless of search visibility */}
+          <div className="ms-auto flex shrink-0 items-center gap-1 sm:gap-2">
+            <label className="hidden items-center gap-1.5 rounded-lg border border-slate-200 px-2 py-1 text-sm dark:border-slate-700 sm:flex">
+              <span className="text-ink-faint">الفرع</span>
+              <select className="bg-transparent text-sm font-medium outline-none">
+                {branches.map((b) => <option key={b}>{b}</option>)}
+              </select>
+            </label>
 
-          <button onClick={toggleTheme} className="rounded-lg p-2 text-ink-soft hover:bg-slate-100 dark:hover:bg-slate-800" title="تبديل السمة">
-            <Sun size={18} className="hidden dark:block" />
-            <Moon size={18} className="dark:hidden" />
-          </button>
+            <button onClick={toggleTheme} className="rounded-lg p-2 text-ink-soft hover:bg-slate-100 dark:hover:bg-slate-800" title="تبديل السمة" aria-label="تبديل السمة">
+              <Sun size={18} className="hidden dark:block" />
+              <Moon size={18} className="dark:hidden" />
+            </button>
 
-          <div className="flex items-center gap-2 rounded-lg px-1.5 py-1">
-            <div className="grid h-8 w-8 place-items-center rounded-full bg-brand-100 text-sm font-bold text-brand-700 dark:bg-brand-500/20 dark:text-brand-300">غ</div>
-            <div className="hidden text-right leading-tight sm:block">
-              <div className="text-xs font-semibold">غادة الشمري</div>
-              <div className="text-[11px] text-ink-faint">مدير عام</div>
+            <div className="flex items-center gap-2 rounded-lg px-1 py-1 sm:px-1.5">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-100 text-sm font-bold text-brand-700 dark:bg-brand-500/20 dark:text-brand-300">غ</div>
+              <div className="hidden text-right leading-tight sm:block">
+                <div className="text-xs font-semibold">غادة الشمري</div>
+                <div className="text-[11px] text-ink-faint">مدير عام</div>
+              </div>
+              <ChevronDown size={14} className="hidden text-ink-faint sm:block" />
             </div>
-            <ChevronDown size={14} className="text-ink-faint" />
+            <button onClick={() => nver("/login")} className="shrink-0 rounded-lg p-2 text-ink-soft hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10" title="تسجيل الخروج" aria-label="تسجيل الخروج">
+              <LogOut size={18} />
+            </button>
           </div>
-          <button onClick={() => nver("/login")} className="rounded-lg p-2 text-ink-soft hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10" title="تسجيل الخروج">
-            <LogOut size={18} />
-          </button>
         </div>
       </header>
 
