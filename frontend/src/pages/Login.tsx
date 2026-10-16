@@ -1,12 +1,23 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowUpDown, Eye } from "lucide-react";
+import { ArrowUpDown, Eye, Loader2 } from "lucide-react";
 import { useAuth } from "../auth";
+import { DEMO_USERS } from "../rbac";
 
 export default function Login() {
   const nav = useNavigate();
   const { login } = useAuth();
   const [u, setU] = useState("ghada");
+  const [busy, setBusy] = useState(false);
+  const signIn = async (username: string) => {
+    setBusy(true);
+    try {
+      await login(username);
+      nav("/");
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
     <div className="grid min-h-full lg:grid-cols-2">
       {/* Brand panel */}
@@ -50,8 +61,7 @@ export default function Login() {
             className="mt-6 space-y-4"
             onSubmit={(e) => {
               e.preventDefault();
-              login(u);
-              nav("/");
+              signIn(u);
             }}
           >
             <div>
@@ -76,10 +86,27 @@ export default function Login() {
             <label className="flex items-center gap-2 text-sm text-ink-soft dark:text-slate-400">
               <input type="checkbox" className="accent-brand-500" /> تذكّرني
             </label>
-            <button className="w-full rounded-lg bg-brand-500 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600">
-              تسجيل الدخول
+            <button disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-500 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600 disabled:opacity-60">
+              {busy && <Loader2 size={15} className="animate-spin" />} تسجيل الدخول
             </button>
           </form>
+
+          <div className="mt-6">
+            <div className="mb-2 text-center text-[11px] font-semibold uppercase tracking-wide text-ink-faint">دخول سريع بدور مختلف (لتجربة الصلاحيات)</div>
+            <div className="flex flex-wrap justify-center gap-1.5">
+              {DEMO_USERS.map((d) => (
+                <button
+                  key={d.username}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => signIn(d.username)}
+                  className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-ink-soft transition hover:border-brand-400 hover:text-brand-600 disabled:opacity-60 dark:border-slate-700 dark:text-slate-300"
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <p className="mt-6 text-center text-xs text-ink-faint">
             نموذج أولي — أي بيانات تنقلك إلى اللوحة. كلمات المرور في النظام الفعلي مُشفّرة (لا تُعرض).
           </p>

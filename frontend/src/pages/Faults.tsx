@@ -4,6 +4,7 @@ import { Plus, LayoutGrid, List } from "lucide-react";
 import { Card, PageHeader, Badge, Btn, cx, Modal, Field, TextInput, Select, Textarea, FormGrid, toast } from "../lib/ui";
 import type { FaultTicket, Priority } from "../data/mock";
 import { useDB, create, nextStrId } from "../api/store";
+import { useAuth } from "../auth";
 
 const columns = [
   { key: "open", label: "مفتوح / مُسند" },
@@ -67,6 +68,7 @@ function NewFault({ onClose }: { onClose: () => void }) {
 }
 
 export default function Faults() {
+  const { can } = useAuth();
   const faults = useDB((d) => d.faults);
   const elevators = useDB((d) => d.elevators);
   const [view, setView] = useState<"board" | "list">("board");
@@ -81,7 +83,7 @@ export default function Faults() {
               <button onClick={() => setView("board")} className={cx("rounded-md p-1.5", view === "board" ? "bg-brand-500 text-white" : "text-ink-soft")}><LayoutGrid size={15} /></button>
               <button onClick={() => setView("list")} className={cx("rounded-md p-1.5", view === "list" ? "bg-brand-500 text-white" : "text-ink-soft")}><List size={15} /></button>
             </div>
-            <Btn variant="primary" onClick={() => setAdding(true)}><Plus size={15} /> تسجيل بلاغ</Btn>
+            {can("faults", "create") && <Btn variant="primary" onClick={() => setAdding(true)}><Plus size={15} /> تسجيل بلاغ</Btn>}
           </>
         } />
 

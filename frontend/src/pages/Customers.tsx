@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Plus, Pencil, Trash2, Building2, User } from "lucide-react";
 import { Card, PageHeader, Btn, Modal, Field, TextInput, Select, FormGrid, toast, cx } from "../lib/ui";
 import { useDB, create, update, remove, nextNumId } from "../api/store";
+import { useAuth } from "../auth";
 import type { Customer } from "../data/seed";
 
 const empty = (): Customer => ({
@@ -50,6 +51,7 @@ function CustomerForm({ init, onClose }: { init: Customer; onClose: () => void }
 }
 
 export default function Customers() {
+  const { can } = useAuth();
   const customers = useDB((d) => d.customers);
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<Customer | null>(null);
@@ -62,7 +64,7 @@ export default function Customers() {
   return (
     <div>
       <PageHeader title="العملاء" subtitle={`${customers.length} عميل — أفراد وشركات`}
-        actions={<Btn variant="primary" onClick={() => setEditing(empty())}><Plus size={15} /> عميل جديد</Btn>} />
+        actions={can("customers", "create") ? <Btn variant="primary" onClick={() => setEditing(empty())}><Plus size={15} /> عميل جديد</Btn> : undefined} />
 
       <Card className="mb-4 p-3">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="بحث: الاسم، الرمز، الحي، الجوال…"
@@ -96,8 +98,8 @@ export default function Customers() {
                   <td className="tnum px-4 py-2.5">{c.elevators}</td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => setEditing(c)} className="rounded-md p-1.5 text-ink-faint hover:bg-slate-100 hover:text-brand-600 dark:hover:bg-slate-800"><Pencil size={14} /></button>
-                      <button onClick={() => del(c)} className="rounded-md p-1.5 text-ink-faint hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10"><Trash2 size={14} /></button>
+                      {can("customers", "edit") && <button onClick={() => setEditing(c)} className="rounded-md p-1.5 text-ink-faint hover:bg-slate-100 hover:text-brand-600 dark:hover:bg-slate-800"><Pencil size={14} /></button>}
+                      {can("customers", "delete") && <button onClick={() => del(c)} className="rounded-md p-1.5 text-ink-faint hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10"><Trash2 size={14} /></button>}
                     </div>
                   </td>
                 </tr>

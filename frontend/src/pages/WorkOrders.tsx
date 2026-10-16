@@ -4,6 +4,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Card, PageHeader, Badge, Btn, cx, Modal, Field, TextInput, Select, FormGrid, toast } from "../lib/ui";
 import type { WorkOrder, Priority } from "../data/mock";
 import { useDB, create, remove, nextStrId } from "../api/store";
+import { useAuth } from "../auth";
 
 const typeFilters = ["الكل", "صيانة دورية", "إصلاح عطل", "فحص", "تركيب"] as const;
 const checklistFor: Record<string, number> = { "صيانة دورية": 18, "إصلاح عطل": 9, "فحص": 22, "تركيب": 25 };
@@ -61,6 +62,7 @@ function NewWO({ onClose }: { onClose: () => void }) {
 }
 
 export default function WorkOrders() {
+  const { can } = useAuth();
   const workOrders = useDB((d) => d.workOrders);
   const elevators = useDB((d) => d.elevators);
   const [t, setT] = useState<(typeof typeFilters)[number]>("الكل");
@@ -76,7 +78,7 @@ export default function WorkOrders() {
   return (
     <div>
       <PageHeader title="أوامر العمل" subtitle="العمود الفقري التشغيلي — كل زيارة أو إصلاح أو تركيب هو أمر عمل واحد"
-        actions={<Btn variant="primary" onClick={() => setAdding(true)}><Plus size={15} /> أمر عمل جديد</Btn>} />
+        actions={can("work_orders", "create") ? <Btn variant="primary" onClick={() => setAdding(true)}><Plus size={15} /> أمر عمل جديد</Btn> : undefined} />
 
       <Card className="mb-4 p-3">
         <div className="flex flex-wrap items-center gap-3">
@@ -114,7 +116,7 @@ export default function WorkOrders() {
                     <td className="px-4 py-2.5 text-ink-soft">{w.technicians.map((tt) => tt.name).join("، ")}</td>
                     <td className="px-4 py-2.5"><Badge value={w.priority} /></td>
                     <td className="px-4 py-2.5"><Badge value={w.status} /></td>
-                    <td className="px-4 py-2.5"><button onClick={() => del(w)} className="rounded-md p-1.5 text-ink-faint hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10" aria-label="حذف"><Trash2 size={14} /></button></td>
+                    <td className="px-4 py-2.5">{can("work_orders", "delete") && <button onClick={() => del(w)} className="rounded-md p-1.5 text-ink-faint hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10" aria-label="حذف"><Trash2 size={14} /></button>}</td>
                   </tr>
                 );
               })}

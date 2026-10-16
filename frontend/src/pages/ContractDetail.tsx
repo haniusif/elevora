@@ -2,6 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowRight, CalendarClock, MapPin, User, Wrench, Plus, Trash2 } from "lucide-react";
 import { Card, Badge, Stat, Btn, cx, toast } from "../lib/ui";
 import { useDB, update } from "../api/store";
+import { useAuth } from "../auth";
 import { contractStatusAr, defaultBilling, type BillingLine } from "../data/seed";
 
 const billStatusCls: Record<BillingLine["status"], string> = {
@@ -14,6 +15,8 @@ const nextStatus: Record<BillingLine["status"], BillingLine["status"]> = { pendi
 
 export default function ContractDetail() {
   const { id } = useParams();
+  const { can } = useAuth();
+  const canEdit = can("contracts", "edit");
   const contracts = useDB((d) => d.contracts);
   const elevators = useDB((d) => d.elevators);
   const k = contracts.find((x) => x.id === Number(id));
@@ -89,7 +92,7 @@ export default function ContractDetail() {
           <Card className="p-5">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-sm font-semibold">جدول الدفعات</h3>
-              <button onClick={addLine} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-500/10"><Plus size={13} /> إضافة دفعة</button>
+              {canEdit && <button onClick={addLine} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-500/10"><Plus size={13} /> إضافة دفعة</button>}
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[460px] text-sm">
@@ -100,17 +103,17 @@ export default function ContractDetail() {
                   {billing.map((b, i) => (
                     <tr key={i} className="border-t border-slate-100 dark:border-slate-800">
                       <td className="py-1.5">
-                        <input value={b.label} onChange={(e) => setLine(i, { label: e.target.value })}
-                          className="w-28 rounded-md border border-transparent bg-transparent px-1 py-0.5 text-sm outline-none hover:border-slate-200 focus:border-brand-400 dark:hover:border-slate-700" />
+                        <input value={b.label} readOnly={!canEdit} onChange={(e) => setLine(i, { label: e.target.value })}
+                          className="w-28 rounded-md border border-transparent bg-transparent px-1 py-0.5 text-sm outline-none hover:border-slate-200 focus:border-brand-400 read-only:hover:border-transparent dark:hover:border-slate-700" />
                       </td>
                       <td className="py-1.5">
-                        <input type="number" value={b.amount} onChange={(e) => setLine(i, { amount: +e.target.value })}
-                          className="tnum w-24 rounded-md border border-slate-200 bg-white px-2 py-0.5 text-sm outline-none focus:border-brand-400 dark:border-slate-700 dark:bg-slate-900" />
+                        <input type="number" value={b.amount} readOnly={!canEdit} onChange={(e) => setLine(i, { amount: +e.target.value })}
+                          className="tnum w-24 rounded-md border border-slate-200 bg-white px-2 py-0.5 text-sm outline-none focus:border-brand-400 read-only:opacity-70 dark:border-slate-700 dark:bg-slate-900" />
                       </td>
                       <td className="py-1.5">
-                        <button onClick={() => cycle(i)} title="اضغط لتغيير الحالة" className={cx("rounded-md px-2 py-0.5 text-xs font-medium", billStatusCls[b.status])}>{billStatusAr[b.status]}</button>
+                        <button onClick={() => canEdit && cycle(i)} title={canEdit ? "اضغط لتغيير الحالة" : ""} className={cx("rounded-md px-2 py-0.5 text-xs font-medium", billStatusCls[b.status], !canEdit && "cursor-default")}>{billStatusAr[b.status]}</button>
                       </td>
-                      <td className="py-1.5"><button onClick={() => delLine(i)} className="rounded p-1 text-ink-faint hover:text-rose-600" aria-label="حذف"><Trash2 size={13} /></button></td>
+                      <td className="py-1.5">{canEdit && <button onClick={() => delLine(i)} className="rounded p-1 text-ink-faint hover:text-rose-600" aria-label="حذف"><Trash2 size={13} /></button>}</td>
                     </tr>
                   ))}
                   <tr className="border-t border-slate-200 font-semibold dark:border-slate-700">

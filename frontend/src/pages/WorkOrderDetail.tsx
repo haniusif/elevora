@@ -5,6 +5,7 @@ import { ArrowRight, MapPin, Clock, Check, X, Camera, PenTool, Package, Trash2, 
 import { Card, Badge, Btn, Modal, Select, TextInput, Field, FormGrid, toast, cx } from "../lib/ui";
 import { defaultChecklist, type WorkOrder, type WoChecklistItem, type WoPart, type TechRole } from "../data/mock";
 import { useDB, update, remove } from "../api/store";
+import { useAuth } from "../auth";
 
 const flow = ["scheduled", "assigned", "en_route", "started", "completed", "customer_signed", "supervisor_approved", "closed"];
 const flowAr: Record<string, string> = {
@@ -96,6 +97,8 @@ function AddTech({ onAdd, onClose }: { onAdd: (name: string, role: TechRole) => 
 export default function WorkOrderDetail() {
   const { id } = useParams();
   const nav = useNavigate();
+  const { can } = useAuth();
+  const canEdit = can("work_orders", "edit");
   const workOrders = useDB((d) => d.workOrders);
   const elevators = useDB((d) => d.elevators);
   const items = useDB((d) => d.items);
@@ -173,9 +176,9 @@ export default function WorkOrderDetail() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Btn variant="outline" onClick={del}><Trash2 size={15} /> حذف</Btn>
+          {can("work_orders", "delete") && <Btn variant="outline" onClick={del}><Trash2 size={15} /> حذف</Btn>}
           <Btn variant="outline"><MapPin size={15} /> الموقع</Btn>
-          <Btn variant="primary" onClick={advance}><Check size={15} /> تقديم الحالة</Btn>
+          {canEdit && <Btn variant="primary" onClick={advance}><Check size={15} /> تقديم الحالة</Btn>}
         </div>
       </div>
 
@@ -215,7 +218,7 @@ export default function WorkOrderDetail() {
           <Card className="p-5">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-sm font-semibold">الفنيون المسندون</h3>
-              <button onClick={() => setAddingTech(true)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-500/10"><UserPlus size={13} /> إسناد</button>
+              {canEdit && <button onClick={() => setAddingTech(true)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-500/10"><UserPlus size={13} /> إسناد</button>}
             </div>
             <ul className="space-y-2">
               {w.technicians.map((t, i) => (
@@ -290,7 +293,7 @@ export default function WorkOrderDetail() {
           <Card className="p-5">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-sm font-semibold"><Package size={15} className="text-amber-500" /> القطع المستهلكة</h3>
-              <button onClick={() => setPicking(true)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-500/10"><Plus size={13} /> صرف قطعة</button>
+              {canEdit && <button onClick={() => setPicking(true)} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-500/10"><Plus size={13} /> صرف قطعة</button>}
             </div>
             {parts.length ? (
               <table className="w-full text-sm">

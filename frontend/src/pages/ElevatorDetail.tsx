@@ -4,6 +4,7 @@ import { ArrowRight, QrCode, Wrench, AlertTriangle, Package, ClipboardCheck, Fil
 import { Card, Badge, Btn } from "../lib/ui";
 import { elevatorHistory, HistoryEvent, type Elevator } from "../data/mock";
 import { useDB } from "../api/store";
+import { useAuth } from "../auth";
 
 const specRows = (e: Elevator) => [
   ["الرقم التسلسلي", e.assetNo.replace("LFT", "SN")],
@@ -29,6 +30,7 @@ const histTone: Record<HistoryEvent["kind"], string> = {
 
 export default function ElevatorDetail() {
   const { id } = useParams();
+  const { can } = useAuth();
   const elevators = useDB((d) => d.elevators);
   const e = elevators.find((x) => x.id === Number(id));
   const [tab, setTab] = useState<"history" | "spec" | "docs">("history");
@@ -54,7 +56,7 @@ export default function ElevatorDetail() {
         </div>
         <div className="flex gap-2">
           <Btn variant="outline"><QrCode size={15} /> {e.qr}</Btn>
-          <Btn variant="primary"><Wrench size={15} /> إنشاء أمر عمل</Btn>
+          {can("work_orders", "create") && <Btn variant="primary"><Wrench size={15} /> إنشاء أمر عمل</Btn>}
         </div>
       </div>
 

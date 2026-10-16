@@ -18,6 +18,8 @@ import {
   type Contract,
   type Item,
 } from "../data/seed";
+import { hasPerm, moduleOfCollection, type Verb } from "../rbac";
+import { toast } from "../lib/ui";
 
 export interface DB {
   elevators: Elevator[];
@@ -100,19 +102,53 @@ export function nextStrId(prefix: string): string {
   return prefix + Date.now().toString(36);
 }
 
-export function create<K extends Coll>(coll: K, item: DB[K][number]) {
-  commit({ ...state, [coll]: [item as never, ...(state[coll] as never[])] });
+// ---- Mock-API behaviour: session, latency, server-side RBAC --------------
+// Authorization is enforced HERE (the data/API layer), not only by hiding UI.
+let currentRole: string | undefined;
+export function setRole(role?: string) {
+  currentRole = role;
 }
 
-export function update<K extends Coll>(coll: K, id: unknown, patch: Partial<DB[K][number]>) {
+const latency = () => new Promise<void>((r) => setTimeout(r, 50 + Math.random() * 110));
+
+function allow(coll: Coll, verb: Verb): boolean {
+  if (hasPerm(currentRole, moduleOfCollection(coll), verb)) return true;
+  toast("ليس لديك صلاحية لهذا الإجراء", "err");
+  return false;
+}
+function log(method: string, coll: string, id?: unknown) {
+  // eslint-disable-next-line no-console
+  console.log(`[API] ${method} /api/v1/${coll}${id != null ? "/" + id : ""}`);
+}
+
+export async function bootstrap(): Promise<void> {
+  log("GET", "bootstrap");
+  await latency();
+}
+
+export async function create<K extends Coll>(coll: K, item: DB[K][number]): Promise<boolean> {
+  if (!allow(coll, "create")) return false;
+  log("POST", coll);
+  await latency();
+  commit({ ...state, [coll]: [item as never, ...(state[coll] as never[])] });
+  return true;
+}
+
+export async function update<K extends Coll>(coll: K, id: unknown, patch: Partial<DB[K][number]>): Promise<boolean> {
+  if (!allow(coll, "edit")) return false;
+  log("PATCH", coll, id);
+  await latency();
   commit({
     ...state,
-    [coll]: (state[coll] as { id: unknown }[]).map((x) =>
-      x.id === id ? ({ ...x, ...patch } as never) : (x as never)
-    ),
+    [coll]: (state[coll] as { id: unknown }[]).map((x) => (x.id === id ? ({ ...x, ...patch } as never) : (x as never))),
   });
+  return true;
 }
 
-export function remove<K extends Coll>(coll: K, id: unknown) {
+export async function remove<K extends Coll>(coll: K, id: unknown): Promise<boolean> {
+  if (!allow(coll, "delete")) return false;
+  log("DELETE", coll, id);
+  await latency();
   commit({ ...state, [coll]: (state[coll] as { id: unknown }[]).filter((x) => x.id !== id) as never[] });
+  return true;
 }

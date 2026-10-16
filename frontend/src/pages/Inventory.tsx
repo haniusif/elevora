@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Plus, Pencil, Trash2, Minus, PackagePlus, AlertTriangle } from "lucide-react";
 import { Card, PageHeader, Btn, Stat, Modal, Field, TextInput, Select, FormGrid, toast, cx } from "../lib/ui";
 import { useDB, create, update, remove, nextNumId } from "../api/store";
+import { useAuth } from "../auth";
 import type { Item } from "../data/seed";
 
 const warehouses = ["المستودع الرئيسي", "مستودع الفرع", "مركبة الفني", "الموقع"];
@@ -52,6 +53,7 @@ function ItemForm({ init, onClose }: { init: Item; onClose: () => void }) {
 }
 
 export default function Inventory() {
+  const { can } = useAuth();
   const items = useDB((d) => d.items);
   const [q, setQ] = useState("");
   const [lowOnly, setLowOnly] = useState(false);
@@ -74,7 +76,7 @@ export default function Inventory() {
   return (
     <div>
       <PageHeader title="المخزون وقطع الغيار" subtitle="أصناف المخزون بالكميات والحد الأدنى — حركة المخزون تُحدّث المتاح"
-        actions={<Btn variant="primary" onClick={() => setEditing(empty())}><Plus size={15} /> صنف جديد</Btn>} />
+        actions={can("inventory", "create") ? <Btn variant="primary" onClick={() => setEditing(empty())}><Plus size={15} /> صنف جديد</Btn> : undefined} />
 
       <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="عدد الأصناف" value={items.length} />
@@ -120,15 +122,17 @@ export default function Inventory() {
                   </td>
                   <td className="tnum px-4 py-2.5">{it.minStock}</td>
                   <td className="px-4 py-2.5">
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => adjust(it, -1)} className="rounded-md border border-slate-200 p-1 text-ink-soft hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800" aria-label="صرف"><Minus size={13} /></button>
-                      <button onClick={() => adjust(it, 1)} className="rounded-md border border-slate-200 p-1 text-ink-soft hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800" aria-label="توريد"><PackagePlus size={13} /></button>
-                    </div>
+                    {can("inventory", "edit") ? (
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => adjust(it, -1)} className="rounded-md border border-slate-200 p-1 text-ink-soft hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800" aria-label="صرف"><Minus size={13} /></button>
+                        <button onClick={() => adjust(it, 1)} className="rounded-md border border-slate-200 p-1 text-ink-soft hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800" aria-label="توريد"><PackagePlus size={13} /></button>
+                      </div>
+                    ) : <span className="text-xs text-ink-faint">—</span>}
                   </td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => setEditing(it)} className="rounded-md p-1.5 text-ink-faint hover:bg-slate-100 hover:text-brand-600 dark:hover:bg-slate-800"><Pencil size={14} /></button>
-                      <button onClick={() => del(it)} className="rounded-md p-1.5 text-ink-faint hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10"><Trash2 size={14} /></button>
+                      {can("inventory", "edit") && <button onClick={() => setEditing(it)} className="rounded-md p-1.5 text-ink-faint hover:bg-slate-100 hover:text-brand-600 dark:hover:bg-slate-800"><Pencil size={14} /></button>}
+                      {can("inventory", "delete") && <button onClick={() => del(it)} className="rounded-md p-1.5 text-ink-faint hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10"><Trash2 size={14} /></button>}
                     </div>
                   </td>
                 </tr>

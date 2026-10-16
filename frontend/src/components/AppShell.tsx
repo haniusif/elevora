@@ -6,16 +6,17 @@ import {
 } from "lucide-react";
 import { cx } from "../lib/ui";
 import { useAuth } from "../auth";
+import type { Module } from "../rbac";
 import { branches } from "../data/mock";
 
-const nav = [
-  { to: "/", label: "لوحة المعلومات", icon: LayoutDashboard, end: true },
-  { to: "/elevators", label: "المصاعد (الأصول)", icon: ArrowUpDown },
-  { to: "/contracts", label: "العقود و SLA", icon: FileText },
-  { to: "/work-orders", label: "أوامر العمل", icon: ClipboardList },
-  { to: "/faults", label: "البلاغات والأعطال", icon: AlertTriangle },
-  { to: "/customers", label: "العملاء", icon: Users },
-  { to: "/inventory", label: "المخزون وقطع الغيار", icon: Boxes },
+const nav: { to: string; label: string; icon: typeof Users; module: Module; end?: boolean }[] = [
+  { to: "/", label: "لوحة المعلومات", icon: LayoutDashboard, module: "dashboard", end: true },
+  { to: "/elevators", label: "المصاعد (الأصول)", icon: ArrowUpDown, module: "elevators" },
+  { to: "/contracts", label: "العقود و SLA", icon: FileText, module: "contracts" },
+  { to: "/work-orders", label: "أوامر العمل", icon: ClipboardList, module: "work_orders" },
+  { to: "/faults", label: "البلاغات والأعطال", icon: AlertTriangle, module: "faults" },
+  { to: "/customers", label: "العملاء", icon: Users, module: "customers" },
+  { to: "/inventory", label: "المخزون وقطع الغيار", icon: Boxes, module: "inventory" },
 ];
 const navSoon = [{ label: "الإعدادات والصلاحيات", icon: Settings }];
 
@@ -32,7 +33,8 @@ function toggleTheme() {
 export default function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const nver = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, can } = useAuth();
+  const visibleNav = nav.filter((n) => can(n.module, "view"));
 
   return (
     <div className="min-h-full">
@@ -79,7 +81,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               </div>
               <div className="hidden text-right leading-tight sm:block">
                 <div className="text-xs font-semibold">{user?.name ?? "غادة الشمري"}</div>
-                <div className="text-[11px] text-ink-faint">{user?.role ?? "مدير عام"}</div>
+                <div className="text-[11px] text-ink-faint">{user?.roleLabel ?? "مدير عام"}</div>
               </div>
               <ChevronDown size={14} className="hidden text-ink-faint sm:block" />
             </div>
@@ -97,7 +99,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           open ? "translate-x-0" : "translate-x-full lg:translate-x-0"
         )}>
           <nav className="flex flex-col gap-1">
-            {nav.map((n) => (
+            {visibleNav.map((n) => (
               <NavLink
                 key={n.to}
                 to={n.to}

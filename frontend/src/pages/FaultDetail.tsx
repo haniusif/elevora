@@ -4,10 +4,13 @@ import { ArrowRight, Clock, MessageSquare, Lock, Wrench, CheckCircle2 } from "lu
 import { Card, Badge, Btn, toast } from "../lib/ui";
 import { type WorkOrder } from "../data/mock";
 import { useDB, update, create, nextStrId } from "../api/store";
+import { useAuth } from "../auth";
 
 export default function FaultDetail() {
   const { id } = useParams();
   const nav = useNavigate();
+  const { can } = useAuth();
+  const canEdit = can("faults", "edit");
   const faults = useDB((d) => d.faults);
   const elevators = useDB((d) => d.elevators);
   const f = faults.find((x) => x.id === id);
@@ -56,8 +59,8 @@ export default function FaultDetail() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Btn variant="outline" onClick={makeWO}><Wrench size={15} /> إنشاء أمر إصلاح</Btn>
-          <Btn variant="primary" onClick={resolve}><CheckCircle2 size={15} /> حل البلاغ</Btn>
+          {can("work_orders", "create") && <Btn variant="outline" onClick={makeWO}><Wrench size={15} /> إنشاء أمر إصلاح</Btn>}
+          {canEdit && <Btn variant="primary" onClick={resolve}><CheckCircle2 size={15} /> حل البلاغ</Btn>}
         </div>
       </div>
 
@@ -114,7 +117,7 @@ export default function FaultDetail() {
             ) : (
               <p className="text-sm text-ink-faint">لا توجد تعليقات.</p>
             )}
-            <div className="mt-2 flex flex-wrap gap-2">
+            {canEdit && <div className="mt-2 flex flex-wrap gap-2">
               <input
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
@@ -128,7 +131,7 @@ export default function FaultDetail() {
                 <option value="customer">مرئي للعميل</option>
               </select>
               <Btn variant="primary" onClick={addComment}>إرسال</Btn>
-            </div>
+            </div>}
           </div>
         </Card>
 

@@ -4,6 +4,7 @@ import { QrCode, Filter, Plus, Pencil, Trash2 } from "lucide-react";
 import { Card, PageHeader, Badge, Btn, cx, Modal, Field, TextInput, Select, FormGrid, toast } from "../lib/ui";
 import { statusAr, type Elevator, type AssetStatus } from "../data/mock";
 import { useDB, create, update, remove, nextNumId } from "../api/store";
+import { useAuth } from "../auth";
 
 const statuses = ["all", "active", "under_maintenance", "out_of_service"] as const;
 
@@ -79,6 +80,7 @@ function ElevatorForm({ init, onClose }: { init: Elevator; onClose: () => void }
 }
 
 export default function Elevators() {
+  const { can } = useAuth();
   const elevators = useDB((d) => d.elevators);
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<(typeof statuses)[number]>("all");
@@ -109,7 +111,7 @@ export default function Elevators() {
         actions={
           <>
             <Btn variant="outline"><QrCode size={15} /> مسح QR</Btn>
-            <Btn variant="primary" onClick={() => setEditing(empty())}><Plus size={15} /> أصل جديد</Btn>
+            {can("elevators", "create") && <Btn variant="primary" onClick={() => setEditing(empty())}><Plus size={15} /> أصل جديد</Btn>}
           </>
         }
       />
@@ -157,8 +159,9 @@ export default function Elevators() {
                   <td className="px-4 py-2.5"><Badge value={e.status} /></td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => setEditing(e)} className="rounded-md p-1.5 text-ink-faint hover:bg-slate-100 hover:text-brand-600 dark:hover:bg-slate-800" aria-label="تعديل"><Pencil size={14} /></button>
-                      <button onClick={() => del(e)} className="rounded-md p-1.5 text-ink-faint hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10" aria-label="حذف"><Trash2 size={14} /></button>
+                      {can("elevators", "edit") && <button onClick={() => setEditing(e)} className="rounded-md p-1.5 text-ink-faint hover:bg-slate-100 hover:text-brand-600 dark:hover:bg-slate-800" aria-label="تعديل"><Pencil size={14} /></button>}
+                      {can("elevators", "delete") && <button onClick={() => del(e)} className="rounded-md p-1.5 text-ink-faint hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10" aria-label="حذف"><Trash2 size={14} /></button>}
+                      {!can("elevators", "edit") && !can("elevators", "delete") && <span className="text-xs text-ink-faint">—</span>}
                     </div>
                   </td>
                 </tr>

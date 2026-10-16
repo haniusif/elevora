@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Plus, Pencil, Trash2, RefreshCw } from "lucide-react";
 import { Card, PageHeader, Badge, Btn, cx, Modal, Field, TextInput, Select, FormGrid, toast } from "../lib/ui";
 import { useDB, create, update, remove, nextNumId } from "../api/store";
+import { useAuth } from "../auth";
 import { contractStatusAr, type Contract, type ContractStatus } from "../data/seed";
 
 const filters: (ContractStatus | "all")[] = ["all", "active", "renewal_due", "expired", "draft", "suspended"];
@@ -63,6 +64,7 @@ function ContractForm({ init, onClose }: { init: Contract; onClose: () => void }
 }
 
 export default function Contracts() {
+  const { can } = useAuth();
   const contracts = useDB((d) => d.contracts);
   const [status, setStatus] = useState<(typeof filters)[number]>("all");
   const [q, setQ] = useState("");
@@ -78,7 +80,7 @@ export default function Contracts() {
   return (
     <div>
       <PageHeader title="العقود و SLA" subtitle={`${contracts.length} عقد صيانة — شامل / غير شامل، بمستويات خدمة`}
-        actions={<Btn variant="primary" onClick={() => setEditing(empty())}><Plus size={15} /> عقد جديد</Btn>} />
+        actions={can("contracts", "create") ? <Btn variant="primary" onClick={() => setEditing(empty())}><Plus size={15} /> عقد جديد</Btn> : undefined} />
 
       <Card className="mb-4 p-3">
         <div className="flex flex-wrap items-center gap-3">
@@ -121,11 +123,11 @@ export default function Contracts() {
                   <td className="px-4 py-2.5"><Badge value={k.status} label={contractStatusAr[k.status]} /></td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-1">
-                      {(k.status === "renewal_due" || k.status === "expired") && (
+                      {can("contracts", "edit") && (k.status === "renewal_due" || k.status === "expired") && (
                         <button onClick={() => renew(k)} className="rounded-md p-1.5 text-ink-faint hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-500/10" title="تجديد"><RefreshCw size={14} /></button>
                       )}
-                      <button onClick={() => setEditing(k)} className="rounded-md p-1.5 text-ink-faint hover:bg-slate-100 hover:text-brand-600 dark:hover:bg-slate-800"><Pencil size={14} /></button>
-                      <button onClick={() => del(k)} className="rounded-md p-1.5 text-ink-faint hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10"><Trash2 size={14} /></button>
+                      {can("contracts", "edit") && <button onClick={() => setEditing(k)} className="rounded-md p-1.5 text-ink-faint hover:bg-slate-100 hover:text-brand-600 dark:hover:bg-slate-800"><Pencil size={14} /></button>}
+                      {can("contracts", "delete") && <button onClick={() => del(k)} className="rounded-md p-1.5 text-ink-faint hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10"><Trash2 size={14} /></button>}
                     </div>
                   </td>
                 </tr>
