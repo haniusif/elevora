@@ -1,0 +1,87 @@
+ID,Epic,Phase,Priority,Points,Role,Story,AcceptanceCriteria,TracesTo
+US-001,E1 Security & Foundation,1,P0,5,Security owner,Store all passwords hashed+salted and never display them,"No password in any UI/API/source/log; existing passwords migrated to hashes; forced reset; bcrypt/argon2 with per-user salt",FR-01;BR-03
+US-002,E1 Security & Foundation,1,P0,2,User admin,Remove the plaintext password column from Users,"Users grid/detail shows no password; only set/reset actions",FR-01
+US-003,E1 Security & Foundation,1,P0,5,Admin,Give each user and customer an individual account,"Shared customer login retired; each customer has own portal account; one session = one identity",FR-02;BR-03
+US-004,E1 Security & Foundation,1,P0,8,Admin,Grant permissions per function with full verbs,"View/Create/Edit/Delete/Approve/Reject/Assign/Close/Export/Print per module; finance verbs independent; denied actions blocked in UI and API",FR-03;BR-14
+US-005,E1 Security & Foundation,1,P0,8,Admin,Enforce data scope per role,"All/Company/Branch/Team/Assigned/Own/Customer; enforced server-side on every query (prevents IDOR)",FR-04;BR-14
+US-006,E1 Security & Foundation,1,P0,5,Security owner,Harden authentication,"Password policy; lockout after N fails; session timeout; CSRF tokens; TLS",FR-06;NFR-01;NFR-02
+US-007,E2 Data Hygiene & Reliability,1,P0,5,Auditor,Record an immutable audit trail,"Actor/action/module/record/old/new/IP/device/timestamp; immutable; exportable; filterable",FR-05;BR-13
+US-008,E2 Data Hygiene & Reliability,1,P0,5,Maintenance manager,Replace free-text statuses with controlled enums,"Asset/contract/ticket/invoice/PO use enums; legacy free-text mapped on migration",FR-31;FR-52;DR-03
+US-009,E2 Data Hygiene & Reliability,1,P0,5,Operations owner,Run production on reliable hosting with test data isolated,"Availability >=99.5%; no cold-start Runtime Errors; no test records in live lists",NFR-10;DR-04
+US-010,E3 Elevator Asset Register,2,P0,13,Maintenance manager,Store each elevator as a unique managed asset,"Asset no/serial/QR/brand/model/type/capacity/speed/stops/floors/door/machine/controller/drive/cabin/install/commission/warranty/status",FR-20;BR-01
+US-011,E3 Elevator Asset Register,2,P0,8,Dispatcher,Link each asset to customer-site-building and contract/techs,"Asset shows site/building/active contract/maintenance & fault technicians",FR-21;FR-11
+US-012,E3 Elevator Asset Register,2,P0,8,Technician,See a consolidated history per asset,"Visits/faults/parts/docs/inspections timeline; persists across renewals",FR-21
+US-013,E3 Elevator Asset Register,2,P1,5,Technician,Scan QR to open the asset,"Scanning on web and mobile opens correct asset",FR-22
+US-014,E3 Elevator Asset Register,2,P1,3,Manager,Track asset status lifecycle,"Active/Under Maintenance/Out of Service/Decommissioned",FR-23
+US-015,E3 Elevator Asset Register,2,P1,8,Sales/ops user,Auto-create asset on installation delivery,"Delivery creates asset from contract spec; no re-entry",FR-24;BR-21
+US-016,E4 Work Order Spine,2,P0,13,Dispatcher,Create a work order object,"Captures source/customer/site/elevator/contract/type/priority/schedule/tech/checklist/parts/labour/travel/attachments/signature/status",FR-60;BR-02
+US-017,E4 Work Order Spine,2,P0,8,Manager,Realise all field work as work orders,"PM/fault/inspection/part-install all become WOs; asset history unified",FR-61
+US-018,E4 Work Order Spine,2,P1,8,Storekeeper,Decrement stock and post cost when parts issued on a WO,"Parts reduce stock (warehouse/vehicle) and post to job cost",FR-62;FR-92
+US-019,E4 Work Order Spine,2,P1,5,Supervisor,Control WO status workflow,"Transitions governed by permissions",FR-60
+US-020,E4 Work Order Spine,2,P1,5,Customer,Sign off completed work and get a report,"Signature captured; service report generated",FR-42;FR-60
+US-021,E5 CRM & Customer Master,2,P1,8,Sales user,Maintain a rich customer record,"Individual/company type/code/CR/VAT/national address/contacts/billing+service address",FR-10;BR-10
+US-022,E5 CRM & Customer Master,2,P1,5,Manager,Model the customer hierarchy,"Customer-Branch-Site-Building-Elevator",FR-11
+US-023,E5 CRM & Customer Master,2,P1,5,Sales rep,Manage a lead pipeline,"Source/stage/expected-value/follow-up/owner; convert to customer without re-entry",FR-12
+US-024,E5 CRM & Customer Master,2,P1,5,Data owner,Store customer/elevator data once and reference it,"No re-capture across screens; duplication eliminated",DR-02
+US-025,E6 Contracts & SLA,3,P1,8,Maintenance manager,Create full maintenance contracts,"Covered elevators/type/dates/value/payment schedule/visits/coverage/SLA/penalties/attachments",FR-30;BR-16
+US-026,E6 Contracts & SLA,3,P1,5,Sales user,Cover many elevators in one contract,"One contract to many elevators",FR-30
+US-027,E6 Contracts & SLA,3,P1,3,Manager,Track contract status lifecycle,"Draft/Pending/Active/Suspended/Expired/Renewal-Due/Renewed/Cancelled",FR-31
+US-028,E6 Contracts & SLA,3,P1,5,Manager,Renew while keeping asset history,"One-click renewal continues same asset history",FR-32
+US-029,E6 Contracts & SLA,3,P1,5,Sales manager,Approve/reject quotes and convert to contracts,"Approve/reject with reason; convert to contract (parity with offers)",FR-33
+US-030,E7 Preventive Maintenance,3,P1,8,Planner,Auto-generate PM work orders from the plan,"WOs generated by frequency/day/zone",FR-40;BR-17
+US-031,E7 Preventive Maintenance,3,P1,3,Manager,See due and overdue visits clearly,"Due/overdue flagged; colour coding retained",FR-41
+US-032,E7 Preventive Maintenance,3,P1,8,Technician,Execute a structured visit,"Check-in/out; pass/fail checklist; findings; photos; notes; customer signature",FR-42;BR-02
+US-033,E7 Preventive Maintenance,3,P1,3,Supervisor,Follow the PM visit lifecycle with approval,"Scheduled..Closed; supervisor approval",FR-43
+US-034,E7 Preventive Maintenance,3,P1,3,Customer/technician,Get visit reminders,"Reminders before visit (SMS retained)",FR-44
+US-035,E7 Preventive Maintenance,3,P1,3,Manager,Track missed preventive visits,"Missed visits reported and alerted",FR-41
+US-036,E8 Corrective Maintenance,3,P1,8,Customer-care agent,Create a fault ticket with priority and SLA,"Fault type/description/priority/severity/SLA; timestamps",FR-50;BR-18
+US-037,E8 Corrective Maintenance,3,P1,5,Technician,Log repair details and confirmation,"Root cause/corrective action/parts; dual confirmation codes",FR-51
+US-038,E8 Corrective Maintenance,3,P1,5,Dispatcher,Control the ticket status workflow,"Open..Closed with reopen and escalation",FR-52
+US-039,E8 Corrective Maintenance,3,P1,5,Manager,Raise SLA warnings/breaches,"Timers from timestamps; warning and breach events",FR-53
+US-040,E8 Corrective Maintenance,3,P2,3,Manager,Configure finance-gated dispatch,"Block-on-overdue-invoice configurable with override permission",FR-54
+US-041,E8 Corrective Maintenance,3,P1,3,Dispatcher,See a live open-faults board,"Open faults listed in real time",FR-50;FR-52
+US-042,E9 Dispatch & Field Service,3,P1,8,Dispatcher,Use a dispatch board,"Drag-and-drop assignment; availability/shift/territory",FR-70;BR-05
+US-043,E9 Dispatch & Field Service,3,P1,8,Dispatcher,See technicians and jobs on a map with ETA,"Map + ETA; optional routing",FR-71
+US-044,E9 Dispatch & Field Service,3,P1,5,Manager,Maintain technician profiles,"Skills/certs/region/team/vehicle/jobs/KPIs",FR-72
+US-045,E9 Dispatch & Field Service,3,P2,3,Manager,Assign technicians to zones,"Zone assignment improves routing/balance",FR-70
+US-046,E10 Technician Mobile App,3,P1,8,Technician,See jobs and details on mobile,"Today's jobs/calendar/job-customer-site-elevator details",FR-80;BR-06
+US-047,E10 Technician Mobile App,3,P1,8,Technician,Execute jobs on mobile,"Start/checklist/report fault/findings/parts/photos/signature",FR-80
+US-048,E10 Technician Mobile App,3,P1,13,Technician,Work offline with sync,"Offline mode; background sync",FR-81
+US-049,E10 Technician Mobile App,3,P1,5,Technician,Use QR/camera/GPS,"QR scan; camera; GPS check-in",FR-81
+US-050,E10 Technician Mobile App,3,P1,3,Technician,Use AR/EN/RTL and push,"Arabic/English/RTL; push notifications",FR-81
+US-051,E11 Inventory,4,P1,5,Storekeeper,Maintain an item master,"SKU/category/brand/supplier/unit/cost/price/min-stock/reorder",FR-90;BR-07
+US-052,E11 Inventory,4,P1,8,Storekeeper,Track stock per location,"Main/branch/vehicle/site stock levels",FR-91
+US-053,E11 Inventory,4,P1,8,Storekeeper,Perform stock operations,"In/out/transfer/reserve/adjust/return/damaged",FR-92
+US-054,E11 Inventory,4,P1,5,Technician/storekeeper,Issue parts to work orders,"Issue against WO; consumption tied to job",FR-92;FR-62
+US-055,E11 Inventory,4,P2,3,Storekeeper,Get low-stock alerts,"Reorder alerts raised",FR-93
+US-056,E12 Procurement,4,P2,5,Procurement officer,Manage suppliers and purchase requests,"Suppliers and PRs",FR-100;BR-08
+US-057,E12 Procurement,4,P2,5,Procurement officer,Run RFQ and select supplier,"RFQ; quotation comparison",FR-100;FR-101
+US-058,E12 Procurement,4,P2,5,Procurement officer,Create PO with approval,"PO approval workflow",FR-100
+US-059,E12 Procurement,4,P2,5,Storekeeper,Receive goods and update stock,"Goods receipt updates stock; matches supplier invoice",FR-101
+US-060,E13 Finance & ZATCA,5,P0,13,Accountant,Issue ZATCA Phase-2 tax invoices,"VAT 15%; QR/XML; cleared via accredited integration; passes ZATCA validation",FR-110;BR-04
+US-061,E13 Finance & ZATCA,5,P1,8,Accountant,Invoice contracts/repairs/parts,"Consistent billing across sources",FR-110
+US-062,E13 Finance & ZATCA,5,P1,5,Accountant,Track payments and AR ageing,"Payments/receivables/ageing; paid-outstanding-due + statements retained",FR-111
+US-063,E13 Finance & ZATCA,5,P2,3,Accountant,Issue credit notes,"Compliant credit notes",FR-111
+US-064,E13 Finance & ZATCA,5,P1,8,Manager,See profitability per contract/elevator,"Revenue/cost/profit per customer/contract/elevator incl parts+labour",FR-112;BR-19
+US-065,E13 Finance & ZATCA,5,P2,5,Finance manager,Handle expenses or GL export,"Expenses/cost centres or GL export",FR-113
+US-066,E14 Customer Portal,5,P2,5,Customer,See a portal dashboard,"Elevators/active contracts/open tickets/upcoming maintenance",FR-140;BR-10
+US-067,E14 Customer Portal,5,P2,5,Customer,Open and track tickets,"Tickets with attachments/comments",FR-140
+US-068,E14 Customer Portal,5,P2,5,Customer,Access finance and documents,"Quotations/invoices/payments/documents",FR-140
+US-069,E14 Customer Portal,5,P2,3,Customer,See maintenance history,"Schedule/completed visits/service reports",FR-140
+US-070,E15 Inspection & Compliance,5,P2,8,Supervisor,Run safety/quality inspections,"Checklists/defects/NCRs/corrective actions/evidence",FR-120;BR-11
+US-071,E15 Inspection & Compliance,5,P2,3,Customer/regulator,Issue inspection certificates,"Certificates per asset",FR-120
+US-072,E16 Reporting & KPIs,6,P1,8,GM,Use an executive KPI dashboard,"Elevators/contracts/visits/tickets/SLA/techs/stock/revenue/profit; filters",FR-130;BR-09
+US-073,E16 Reporting & KPIs,6,P1,8,Manager/dispatcher/tech/storekeeper/accountant,Use a role dashboard,"Role-specific KPIs",FR-130
+US-074,E16 Reporting & KPIs,6,P1,5,Manager,See reliability KPIs,"MTTR and MTBF per asset/fleet",FR-131
+US-075,E16 Reporting & KPIs,6,P1,5,Manager,See field-service KPIs,"First-time-fix/jobs per tech/utilisation/avg duration",FR-131
+US-076,E16 Reporting & KPIs,6,P1,5,Manager,See compliance and SLA KPIs,"Compliance; response/arrival/repair; compliance rate",FR-131
+US-077,E17 Notifications & Automation,6,P1,8,User/customer,Receive event notifications,"New ticket/tech assigned-arrived/job done/expiry-renewal/maintenance due-missed/SLA/invoice/low stock/PO approval",FR-150;BR-12
+US-078,E17 Notifications & Automation,6,P1,5,Admin,Deliver across channels,"In-app/email/SMS/WhatsApp/push routing",FR-150;FR-151
+US-079,E17 Notifications & Automation,6,P2,8,Admin,Configure rules by business event,"Notification/approval rules configurable not hard-coded",FR-151;BR-20
+US-080,E17 Notifications & Automation,6,P1,5,Manager,Get automation quick wins,"Auto expiry-renewal/missed-visit/SLA/payment-overdue reminders on existing data",BR-12
+US-081,E18 Non-Regression,1,P0,8,Ops user,Preserve the installation flow,"Quote-contract-factory-warehouse-phased install-delivery-collection unchanged",FR-160;BR-21
+US-082,E18 Non-Regression,1,P0,5,Sales user,Preserve parametric pricing,"Pricing/costing engine intact",FR-160
+US-083,E18 Non-Regression,2,P1,8,Ops user,Integrate engine with asset/finance,"Delivery creates assets; installation billing flows to ZATCA invoicing",FR-160;FR-24;FR-110
+US-084,E19 AI & IoT,7,P3,13,Manager,Get predictive maintenance,"History analysis flags at-risk elevators",IR-08
+US-085,E19 AI & IoT,7,P3,8,Technician,Use a technician copilot,"Suggested faults/steps/manuals/parts",—
+US-086,E19 AI & IoT,7,P3,13,Dispatcher,Auto-create tickets from IoT,"Telemetry auto-creates fault tickets",IR-08
