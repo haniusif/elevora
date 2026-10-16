@@ -1,7 +1,8 @@
-import { Link, useParams } from "react-router-dom";
-import { ArrowRight, MapPin, Clock, Check, X, Minus, Camera, PenTool, Package } from "lucide-react";
-import { Card, Badge, Btn } from "../lib/ui";
-import { workOrders, elevators, woChecklistSample } from "../data/mock";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { ArrowRight, MapPin, Clock, Check, X, Minus, Camera, PenTool, Package, Trash2 } from "lucide-react";
+import { Card, Badge, Btn, toast } from "../lib/ui";
+import { woChecklistSample, type WorkOrder } from "../data/mock";
+import { useDB, update, remove } from "../api/store";
 
 const flow = ["scheduled", "assigned", "en_route", "started", "completed", "customer_signed", "supervisor_approved", "closed"];
 const flowAr: Record<string, string> = {
@@ -11,10 +12,24 @@ const flowAr: Record<string, string> = {
 
 export default function WorkOrderDetail() {
   const { id } = useParams();
+  const nav = useNavigate();
+  const workOrders = useDB((d) => d.workOrders);
+  const elevators = useDB((d) => d.elevators);
   const w = workOrders.find((x) => x.id === id);
-  if (!w) return <div>غير موجود</div>;
-  const el = elevators.find((e) => e.id === w.elevatorId)!;
+  const el = elevators.find((e) => e.id === w?.elevatorId);
+  if (!w || !el) return <div className="text-ink-faint">غير موجود</div>;
   const curIdx = Math.max(0, flow.indexOf(w.status));
+  const advance = () => {
+    const next = flow[Math.min(curIdx + 1, flow.length - 1)];
+    update("workOrders", w.id, { status: next as WorkOrder["status"] });
+    toast(`الحالة: ${flowAr[next]}`);
+  };
+  const del = () => {
+    if (window.confirm(`حذف ${w.woNo}؟`)) {
+      remove("workOrders", w.id);
+      nav("/work-orders");
+    }
+  };
 
   return (
     <div>
@@ -34,8 +49,9 @@ export default function WorkOrderDetail() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Btn variant="outline" onClick={del}><Trash2 size={15} /> حذف</Btn>
           <Btn variant="outline"><MapPin size={15} /> الموقع</Btn>
-          <Btn variant="primary"><Check size={15} /> اعتماد</Btn>
+          <Btn variant="primary" onClick={advance}><Check size={15} /> تقديم الحالة</Btn>
         </div>
       </div>
 

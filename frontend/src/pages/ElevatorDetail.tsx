@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowRight, QrCode, Wrench, AlertTriangle, Package, ClipboardCheck, FileText } from "lucide-react";
 import { Card, Badge, Btn } from "../lib/ui";
-import { elevators, elevatorHistory, statusAr, HistoryEvent } from "../data/mock";
+import { elevatorHistory, HistoryEvent, type Elevator } from "../data/mock";
+import { useDB } from "../api/store";
 
-const specRows = (e: (typeof elevators)[number]) => [
+const specRows = (e: Elevator) => [
   ["الرقم التسلسلي", e.assetNo.replace("LFT", "SN")],
   ["رمز QR", e.qr],
   ["الماركة", e.brand],
@@ -28,6 +29,7 @@ const histTone: Record<HistoryEvent["kind"], string> = {
 
 export default function ElevatorDetail() {
   const { id } = useParams();
+  const elevators = useDB((d) => d.elevators);
   const e = elevators.find((x) => x.id === Number(id));
   const [tab, setTab] = useState<"history" | "spec" | "docs">("history");
   if (!e) return <div>غير موجود</div>;

@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowUpDown, Eye } from "lucide-react";
+import { useAuth } from "../auth";
 
 export default function Login() {
   const nav = useNavigate();
+  const { login } = useAuth();
+  const [u, setU] = useState("ghada");
   return (
     <div className="grid min-h-full lg:grid-cols-2">
       {/* Brand panel */}
@@ -46,13 +50,15 @@ export default function Login() {
             className="mt-6 space-y-4"
             onSubmit={(e) => {
               e.preventDefault();
+              login(u);
               nav("/");
             }}
           >
             <div>
               <label className="mb-1 block text-sm font-medium">اسم المستخدم</label>
               <input
-                defaultValue="ghada"
+                value={u}
+                onChange={(e) => setU(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-400 dark:border-slate-700 dark:bg-slate-900"
               />
             </div>

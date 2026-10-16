@@ -1,13 +1,42 @@
-import { Link, useParams } from "react-router-dom";
+import { useState } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { ArrowRight, Clock, MessageSquare, Lock, Wrench, CheckCircle2 } from "lucide-react";
-import { Card, Badge, Btn } from "../lib/ui";
-import { faults, elevators } from "../data/mock";
+import { Card, Badge, Btn, toast } from "../lib/ui";
+import { type WorkOrder } from "../data/mock";
+import { useDB, update, create, nextStrId } from "../api/store";
 
 export default function FaultDetail() {
   const { id } = useParams();
+  const nav = useNavigate();
+  const faults = useDB((d) => d.faults);
+  const elevators = useDB((d) => d.elevators);
   const f = faults.find((x) => x.id === id);
-  if (!f) return <div>غير موجود</div>;
-  const el = elevators.find((e) => e.id === f.elevatorId)!;
+  const el = elevators.find((e) => e.id === f?.elevatorId);
+  const [comment, setComment] = useState("");
+  const [vis, setVis] = useState<"internal" | "customer">("internal");
+  if (!f || !el) return <div className="text-ink-faint">غير موجود</div>;
+
+  const addComment = () => {
+    if (!comment.trim()) return;
+    update("faults", f.id, { comments: [...f.comments, { by: "غادة الشمري", visibility: vis, body: comment.trim(), at: "الآن" }] });
+    setComment("");
+    toast("تمت إضافة التعليق");
+  };
+  const resolve = () => {
+    update("faults", f.id, { status: "resolved" });
+    toast("تم حل البلاغ");
+  };
+  const makeWO = () => {
+    const wo: WorkOrder = {
+      id: nextStrId("wo"), woNo: "WO-" + Math.floor(3400 + Math.random() * 599), type: "إصلاح عطل",
+      status: "assigned", priority: f.priority, elevatorId: el.id, customer: f.customer, site: f.site,
+      scheduledAt: "2026-10-16 (الآن)", technicians: [{ name: f.tech !== "—" ? f.tech : el.maintenanceTech, role: "رئيسي" }],
+      checklistDone: 0, checklistTotal: 9, partsCount: 0, cost: 0,
+    };
+    create("workOrders", wo);
+    toast("تم إنشاء أمر إصلاح");
+    nav(`/work-orders/${wo.id}`);
+  };
 
   return (
     <div>
@@ -27,8 +56,8 @@ export default function FaultDetail() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Btn variant="outline"><Wrench size={15} /> إنشاء أمر إصلاح</Btn>
-          <Btn variant="primary"><CheckCircle2 size={15} /> حل البلاغ</Btn>
+          <Btn variant="outline" onClick={makeWO}><Wrench size={15} /> إنشاء أمر إصلاح</Btn>
+          <Btn variant="primary" onClick={resolve}><CheckCircle2 size={15} /> حل البلاغ</Btn>
         </div>
       </div>
 
@@ -85,9 +114,20 @@ export default function FaultDetail() {
             ) : (
               <p className="text-sm text-ink-faint">لا توجد تعليقات.</p>
             )}
-            <div className="mt-2 flex gap-2">
-              <input placeholder="أضف تعليقاً…" className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-400 dark:border-slate-700 dark:bg-slate-900" />
-              <Btn variant="primary">إرسال</Btn>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <input
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addComment()}
+                placeholder="أضف تعليقاً…"
+                className="min-w-[160px] flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-400 dark:border-slate-700 dark:bg-slate-900"
+              />
+              <select value={vis} onChange={(e) => setVis(e.target.value as "internal" | "customer")}
+                className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm outline-none dark:border-slate-700 dark:bg-slate-900">
+                <option value="internal">داخلي</option>
+                <option value="customer">مرئي للعميل</option>
+              </select>
+              <Btn variant="primary" onClick={addComment}>إرسال</Btn>
             </div>
           </div>
         </Card>

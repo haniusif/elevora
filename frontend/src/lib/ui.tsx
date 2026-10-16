@@ -1,4 +1,11 @@
-import { ReactNode } from "react";
+import {
+  ReactNode,
+  useEffect,
+  useSyncExternalStore,
+  type InputHTMLAttributes,
+  type TextareaHTMLAttributes,
+  type SelectHTMLAttributes,
+} from "react";
 import { statusAr } from "../data/mock";
 
 export function cx(...c: (string | false | undefined | null)[]) {
@@ -19,6 +26,7 @@ const statusTone: Record<string, Tone> = {
   active: "ok", completed: "ok", customer_signed: "ok", supervisor_approved: "ok", closed: "ok", resolved: "ok",
   under_maintenance: "warn", on_hold_parts: "warn", waiting_parts: "warn", testing: "warn", diagnosis: "warn",
   out_of_service: "crit", decommissioned: "muted",
+  renewal_due: "warn", expired: "crit", draft: "muted", suspended: "warn",
   scheduled: "info", assigned: "info", en_route: "info", started: "info", acknowledged: "info", on_site: "info", open: "info", repairing: "info",
   low: "muted", normal: "info", high: "warn", critical: "crit", emergency: "crit",
   comprehensive: "ok", non_comprehensive: "muted",
@@ -92,4 +100,124 @@ export function SearchInput({ placeholder }: { placeholder: string }) {
       className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none placeholder:text-ink-faint focus:border-brand-400 dark:border-slate-700 dark:bg-slate-900"
     />
   );
+}
+
+// ---- Toasts --------------------------------------------------------------
+type ToastItem = { id: number; msg: string; kind: "ok" | "err" };
+let _toasts: ToastItem[] = [];
+const _tl = new Set<() => void>();
+export function toast(msg: string, kind: "ok" | "err" = "ok") {
+  const id = Date.now() + Math.random();
+  _toasts = [..._toasts, { id, msg, kind }];
+  _tl.forEach((l) => l());
+  setTimeout(() => {
+    _toasts = _toasts.filter((t) => t.id !== id);
+    _tl.forEach((l) => l());
+  }, 2600);
+}
+export function Toaster() {
+  const ts = useSyncExternalStore(
+    (l) => {
+      _tl.add(l);
+      return () => _tl.delete(l);
+    },
+    () => _toasts,
+    () => _toasts
+  );
+  return (
+    <div className="pointer-events-none fixed bottom-4 left-1/2 z-[60] flex -translate-x-1/2 flex-col items-center gap-2">
+      {ts.map((t) => (
+        <div
+          key={t.id}
+          className={cx(
+            "rounded-lg px-4 py-2 text-sm font-medium text-white shadow-lg",
+            t.kind === "ok" ? "bg-brand-600" : "bg-rose-600"
+          )}
+        >
+          {t.msg}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ---- Modal ---------------------------------------------------------------
+export function Modal({
+  title,
+  onClose,
+  children,
+  footer,
+  wide,
+}: {
+  title: string;
+  onClose: () => void;
+  children: ReactNode;
+  footer?: ReactNode;
+  wide?: boolean;
+}) {
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [onClose]);
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 pt-[8vh] backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className={cx(
+          "w-full rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900",
+          wide ? "max-w-2xl" : "max-w-lg"
+        )}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3 dark:border-slate-800">
+          <h3 className="font-semibold">{title}</h3>
+          <button
+            onClick={onClose}
+            className="rounded-lg px-2 py-1 text-ink-faint hover:bg-slate-100 dark:hover:bg-slate-800"
+            aria-label="إغلاق"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="max-h-[68vh] overflow-y-auto px-5 py-4">{children}</div>
+        {footer && (
+          <div className="flex justify-start gap-2 border-t border-slate-100 px-5 py-3 dark:border-slate-800">
+            {footer}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---- Form controls -------------------------------------------------------
+const inputCls =
+  "w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm outline-none focus:border-brand-400 dark:border-slate-700 dark:bg-slate-900";
+
+export function Field({ label, children, full }: { label: string; children: ReactNode; full?: boolean }) {
+  return (
+    <label className={cx("block", full && "sm:col-span-2")}>
+      <span className="mb-1 block text-xs font-medium text-ink-soft dark:text-slate-400">{label}</span>
+      {children}
+    </label>
+  );
+}
+export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
+  return <input {...props} className={cx(inputCls, props.className)} />;
+}
+export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return <textarea {...props} className={cx(inputCls, "min-h-[72px]", props.className)} />;
+}
+export function Select({ children, className, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <select {...props} className={cx(inputCls, className)}>
+      {children}
+    </select>
+  );
+}
+export function FormGrid({ children }: { children: ReactNode }) {
+  return <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{children}</div>;
 }

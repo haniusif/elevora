@@ -5,20 +5,19 @@ import {
   Boxes, Users, Settings, Moon, Sun, LogOut, ChevronDown, Menu, Search,
 } from "lucide-react";
 import { cx } from "../lib/ui";
+import { useAuth } from "../auth";
 import { branches } from "../data/mock";
 
 const nav = [
   { to: "/", label: "لوحة المعلومات", icon: LayoutDashboard, end: true },
   { to: "/elevators", label: "المصاعد (الأصول)", icon: ArrowUpDown },
+  { to: "/contracts", label: "العقود و SLA", icon: FileText },
   { to: "/work-orders", label: "أوامر العمل", icon: ClipboardList },
   { to: "/faults", label: "البلاغات والأعطال", icon: AlertTriangle },
+  { to: "/customers", label: "العملاء", icon: Users },
+  { to: "/inventory", label: "المخزون وقطع الغيار", icon: Boxes },
 ];
-const navSoon = [
-  { label: "العقود و SLA", icon: FileText },
-  { label: "المخزون وقطع الغيار", icon: Boxes },
-  { label: "العملاء", icon: Users },
-  { label: "الإعدادات والصلاحيات", icon: Settings },
-];
+const navSoon = [{ label: "الإعدادات والصلاحيات", icon: Settings }];
 
 function toggleTheme() {
   const el = document.documentElement;
@@ -33,6 +32,7 @@ function toggleTheme() {
 export default function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const nver = useNavigate();
+  const { user, logout } = useAuth();
 
   return (
     <div className="min-h-full">
@@ -74,14 +74,16 @@ export default function AppShell({ children }: { children: ReactNode }) {
             </button>
 
             <div className="flex items-center gap-2 rounded-lg px-1 py-1 sm:px-1.5">
-              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-100 text-sm font-bold text-brand-700 dark:bg-brand-500/20 dark:text-brand-300">غ</div>
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-100 text-sm font-bold text-brand-700 dark:bg-brand-500/20 dark:text-brand-300">
+                {user?.name?.trim()?.[0] ?? "غ"}
+              </div>
               <div className="hidden text-right leading-tight sm:block">
-                <div className="text-xs font-semibold">غادة الشمري</div>
-                <div className="text-[11px] text-ink-faint">مدير عام</div>
+                <div className="text-xs font-semibold">{user?.name ?? "غادة الشمري"}</div>
+                <div className="text-[11px] text-ink-faint">{user?.role ?? "مدير عام"}</div>
               </div>
               <ChevronDown size={14} className="hidden text-ink-faint sm:block" />
             </div>
-            <button onClick={() => nver("/login")} className="shrink-0 rounded-lg p-2 text-ink-soft hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10" title="تسجيل الخروج" aria-label="تسجيل الخروج">
+            <button onClick={() => { logout(); nver("/login"); }} className="shrink-0 rounded-lg p-2 text-ink-soft hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10" title="تسجيل الخروج" aria-label="تسجيل الخروج">
               <LogOut size={18} />
             </button>
           </div>

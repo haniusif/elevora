@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { ArrowUpRight, TrendingUp, AlertTriangle, CalendarClock } from "lucide-react";
 import { Card, PageHeader, Stat, Badge } from "../lib/ui";
-import { kpis, revenueTrend, costTrend, faults, elevators, workOrders, statusAr } from "../data/mock";
+import { kpis, revenueTrend, costTrend } from "../data/mock";
+import { useDB } from "../api/store";
 
 const months = ["ينا", "فبر", "مار", "أبر", "ماي", "يون", "يول", "أغس", "سبت", "أكت", "نوف", "ديس"];
 
@@ -32,6 +33,9 @@ function TrendChart() {
 }
 
 export default function Dashboard() {
+  const faults = useDB((d) => d.faults);
+  const elevators = useDB((d) => d.elevators);
+  const workOrders = useDB((d) => d.workOrders);
   const pmOverdue = [
     { asset: "LFT-1003", cust: "سالم المعمر", zone: "نمار - غرب", days: -474 },
     { asset: "LFT-1115", cust: "عبدالعزيز الدغيثر", zone: "الملقا - شمال", days: -140 },
