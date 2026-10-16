@@ -102,6 +102,26 @@ export const elevatorHistory: Record<number, HistoryEvent[]> = {
   ],
 };
 
+export type TechRole = "رئيسي" | "مساعد" | "متدرب";
+
+export interface WoChecklistItem {
+  label: string;
+  type: "pass_fail" | "boolean" | "measurement" | "number" | "text" | "photo" | "signature";
+  result?: "pass" | "fail" | "na";
+  value?: string;
+  unit?: string;
+  done: boolean;
+}
+
+export interface WoPart {
+  itemId: number;
+  sku: string;
+  name: string;
+  qty: number;
+  unitCost: number;
+  unitPrice: number;
+}
+
 export interface WorkOrder {
   id: string;
   woNo: string;
@@ -112,11 +132,15 @@ export interface WorkOrder {
   customer: string;
   site: string;
   scheduledAt: string;
-  technicians: { name: string; role: "رئيسي" | "مساعد" }[];
+  technicians: { name: string; role: TechRole }[];
   checklistDone: number;
   checklistTotal: number;
   partsCount: number;
   cost: number;
+  labourHours?: number;
+  checklist?: WoChecklistItem[];
+  parts?: WoPart[];
+  signatureUrl?: string;
 }
 
 export const workOrders: WorkOrder[] = [
@@ -177,3 +201,48 @@ export const statusAr: Record<string, string> = {
   low: "منخفض", normal: "عادي", high: "مرتفع", critical: "حرج", emergency: "طارئ",
   comprehensive: "شامل", non_comprehensive: "غير شامل",
 };
+
+// Checklist templates per work type (used to initialize a WO's editable checklist)
+type ChecklistTemplateItem = Omit<WoChecklistItem, "done" | "result" | "value">;
+export const checklistTemplates: Record<string, ChecklistTemplateItem[]> = {
+  "صيانة دورية": [
+    { label: "فحص لوحة التحكم والكنترول", type: "pass_fail" },
+    { label: "فحص المكابح واختبار الطوارئ", type: "pass_fail" },
+    { label: "قياس جهد المحرك", type: "measurement", unit: "فولت" },
+    { label: "فحص الأبواب وحساساتها", type: "pass_fail" },
+    { label: "تزييت السكك والتوجيهات", type: "pass_fail" },
+    { label: "اختبار إضاءة الطوارئ", type: "boolean" },
+    { label: "فحص الحبال والتوصيلات", type: "pass_fail" },
+    { label: "صورة غرفة الماكينة", type: "photo" },
+    { label: "ملاحظات الفني", type: "text" },
+    { label: "توقيع العميل", type: "signature" },
+  ],
+  "إصلاح عطل": [
+    { label: "تشخيص سبب العطل", type: "text" },
+    { label: "فحص السلامة قبل الإصلاح", type: "pass_fail" },
+    { label: "تنفيذ الإصلاح", type: "pass_fail" },
+    { label: "اختبار التشغيل بعد الإصلاح", type: "pass_fail" },
+    { label: "صورة بعد الإصلاح", type: "photo" },
+    { label: "توقيع العميل", type: "signature" },
+  ],
+  "فحص": [
+    { label: "فحص السلامة العام", type: "pass_fail" },
+    { label: "قياس دقة التوقف بين الأدوار", type: "measurement", unit: "مم" },
+    { label: "اختبار زر الطوارئ والجرس", type: "boolean" },
+    { label: "فحص قفل الأبواب", type: "pass_fail" },
+    { label: "فحص حد السرعة (Governor)", type: "pass_fail" },
+    { label: "التوثيق بالصور", type: "photo" },
+    { label: "توقيع المشرف", type: "signature" },
+  ],
+  "تركيب": [
+    { label: "مطابقة المواصفات للعقد", type: "pass_fail" },
+    { label: "محاذاة السكك", type: "measurement", unit: "مم" },
+    { label: "تركيب الماكينة والكنترول", type: "pass_fail" },
+    { label: "تركيب الأبواب والكابينة", type: "pass_fail" },
+    { label: "اختبار التشغيل الأولي", type: "pass_fail" },
+    { label: "توقيع التسليم", type: "signature" },
+  ],
+};
+export function defaultChecklist(type: string): WoChecklistItem[] {
+  return (checklistTemplates[type] ?? []).map((t) => ({ ...t, done: false }));
+}

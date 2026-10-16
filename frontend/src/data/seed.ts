@@ -32,6 +32,15 @@ export interface Contract {
   visitEveryDays: number;
   zone: string;
   tech: string;
+  billing?: BillingLine[];
+}
+
+export interface BillingLine {
+  seq: number;
+  type: "fixed" | "percentage" | "milestone";
+  label: string;
+  amount: number;
+  status: "pending" | "invoiced" | "paid";
 }
 
 export interface Item {
@@ -99,3 +108,13 @@ export const contractStatusAr: Record<ContractStatus, string> = {
   draft: "مسودة",
   suspended: "موقوف",
 };
+
+export function defaultBilling(value: number): BillingLine[] {
+  return [0.25, 0.25, 0.25, 0.25].map((p, i) => ({
+    seq: i + 1,
+    type: "percentage" as const,
+    label: `دفعة ${i + 1}`,
+    amount: Math.round(value * p),
+    status: (i === 0 ? "paid" : i === 1 ? "invoiced" : "pending") as "pending" | "invoiced" | "paid",
+  }));
+}
